@@ -15,4 +15,12 @@ btn?.addEventListener('click',write);setTimeout(write,850);
 $('#yes')?.addEventListener('click',e=>{const a=$('#answer');a.textContent='Okay… then I guess this is my favorite answer ever. ♡';a.classList.add('answer-pop');e.currentTarget.disabled=true;document.querySelectorAll('.question-glow').forEach(x=>x.animate([{opacity:.5,transform:'scale(.8)'},{opacity:1,transform:'scale(1.25)'},{opacity:.5,transform:'scale(1)'}],{duration:1200,easing:'ease-in-out'}));});
 $('#time')?.addEventListener('click',()=>{$('#answer').textContent='Take all the time you need. I just wanted you to know. ♡'});
 $$('.photo-slot').forEach(x=>x.addEventListener('click',()=>x.classList.toggle('focused')));
+
+// Sender buddy: keep one character, and make every tap produce a visible floating reply.
+const buddy=$('#senderBuddy');
+const buddyLines=['hey… you tapped me. ♡','okay, I’m blushing now…','I really mean this.','stay a little longer?','you make this part less scary.','I’m rooting for us. ♡'];
+let buddyTap=0;
+function showBuddyReply(){if(!buddy)return;const text=buddyLines[buddyTap++%buddyLines.length];buddy.classList.remove('tapped');void buddy.offsetWidth;buddy.classList.add('tapped');const old=document.querySelector('.buddy-pop.active');if(old)old.remove();const pop=document.createElement('div');pop.className='buddy-pop active';pop.textContent=text;const r=buddy.getBoundingClientRect();pop.style.left=Math.max(12,Math.min(innerWidth-12,r.left+r.width/2))+'px';pop.style.top=Math.max(12,r.top-8)+'px';document.body.appendChild(pop);if(!reduce){pop.animate([{opacity:0,transform:'translate(-50%,12px) scale(.78)'},{opacity:1,transform:'translate(-50%,0) scale(1.04)',offset:.16},{opacity:1,transform:'translate(-50%,-20px) scale(1)',offset:.7},{opacity:0,transform:'translate(-50%,-58px) scale(.95)'}],{duration:3000,easing:'cubic-bezier(.2,.8,.2,1)'}).finished.then(()=>pop.remove()).catch(()=>pop.remove())}else{pop.style.opacity='1';setTimeout(()=>pop.remove(),2200)}setTimeout(()=>buddy.classList.remove('tapped'),650)}
+buddy?.addEventListener('click',showBuddyReply);
+buddy?.addEventListener('pointerdown',e=>e.stopPropagation());
 });
