@@ -20,5 +20,34 @@
 <section class="question scene reveal" id="question"><div class="question-glow"></div><small>05 · ONE QUESTION</small><h2>Would you let me<br><i>take you on a date?</i></h2><p>No pressure. No perfect answer. Just honesty.</p><div class="answers"><button class="pill primary" id="yes" type="button">Yes ♡</button><button class="pill ghost" id="time" type="button">I need time</button></div><div id="answer" aria-live="polite"></div><button class="restart" data-scroll="top" type="button">↻ read it again</button></section>
 </main>
 <footer>made from the things I couldn't say out loud ♡</footer>
-<script src="script.js?v=20260817-2"></script><script src="effects.js?v=20260817-2"></script>
+<script src="script.js?v=20260817-3"></script><script src="effects.js?v=20260817-3"></script>
+<script>
+(function(){
+  const lines=['hey… you tapped me. ♡','okay, I’m blushing now…','I really mean this.','stay a little longer?','you make this part less scary.','I’m rooting for us. ♡'];
+  let i=0;
+  function reply(){
+    const buddy=document.getElementById('senderBuddy');
+    if(!buddy)return;
+    buddy.classList.remove('tapped'); void buddy.offsetWidth; buddy.classList.add('tapped');
+    document.querySelectorAll('.buddy-pop-direct').forEach(x=>x.remove());
+    const pop=document.createElement('div');
+    pop.className='buddy-pop buddy-pop-direct';
+    pop.textContent=lines[i++%lines.length];
+    pop.style.cssText='position:fixed!important;z-index:2147483647!important;pointer-events:none!important;display:block!important;opacity:1!important;visibility:visible!important;';
+    document.body.appendChild(pop);
+    const r=buddy.getBoundingClientRect();
+    pop.style.left=Math.max(20,Math.min(innerWidth-20,r.left+r.width/2))+'px';
+    pop.style.top=Math.max(20,r.top-8)+'px';
+    pop.animate([
+      {opacity:0,transform:'translate(-50%,14px) scale(.75)'},
+      {opacity:1,transform:'translate(-50%,0) scale(1.05)',offset:.15},
+      {opacity:1,transform:'translate(-50%,-20px) scale(1)',offset:.7},
+      {opacity:0,transform:'translate(-50%,-65px) scale(.95)'}
+    ],{duration:3000,easing:'cubic-bezier(.2,.8,.2,1)'}).finished.then(()=>pop.remove()).catch(()=>pop.remove());
+    setTimeout(()=>buddy.classList.remove('tapped'),650);
+  }
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#senderBuddy')){e.preventDefault();e.stopPropagation();reply();}},true);
+  document.addEventListener('touchend',function(e){if(e.target.closest&&e.target.closest('#senderBuddy')){e.preventDefault();e.stopPropagation();reply();}}, {capture:true,passive:false});
+})();
+</script>
 </body></html>
