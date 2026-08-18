@@ -4,26 +4,30 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.targ
 $$('[data-scroll]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.scroll)?.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})));
 const progress=$('#progress');addEventListener('scroll',()=>{const max=document.documentElement.scrollHeight-innerHeight;if(progress)progress.style.width=(max?scrollY/max*100:0)+'%'});
 
-/* Simple background music system — intentionally kept as close as possible to Happy-Birthday_hehe. */
-let music=$('#bgMusic');
+/* Simple music system, matching Happy-Birthday_hehe. */
 const sound=$('#sound');
-if(!music){music=document.createElement('audio');music.id='bgMusic';music.loop=true;music.preload='auto';const source=document.createElement('source');source.src='music2.mp3';source.type='audio/mpeg';music.appendChild(source);document.body.appendChild(music)}
-else if(!music.querySelector('source')){const source=document.createElement('source');source.src='music2.mp3';source.type='audio/mpeg';music.appendChild(source)}
-else{const source=music.querySelector('source');if(!source.getAttribute('src'))source.src='music2.mp3'}
+let music=$('#bgMusic');
+if(!music){music=document.createElement('audio');music.id='bgMusic';document.body.appendChild(music)}
+music.src='music2.mp3';
+music.loop=true;
+music.preload='auto';
 music.volume=.42;
+music.setAttribute('playsinline','');
 let musicPaused=false;
-async function playMusic(){try{await music.play();sound?.classList.add('active');if(sound)sound.textContent='♫';musicPaused=false}catch(e){}}
+function updateSound(){if(!sound)return;sound.classList.toggle('active',!music.paused);sound.textContent=music.paused?'♪':'♫'}
+async function playMusic(){try{music.volume=.42;await music.play();musicPaused=false;updateSound()}catch(err){/* Browser may require another user gesture. The music button retries playback. */updateSound()}}
 function unlockMusic(){if(!musicPaused&&music.paused)playMusic()}
-if(sound)sound.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(music.paused){musicPaused=false;await playMusic()}else{music.pause();musicPaused=true;sound.classList.remove('active');sound.textContent='×'}});
-document.addEventListener('pointerdown',unlockMusic,{once:true});
+if(sound){sound.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(music.paused){musicPaused=false;await playMusic()}else{music.pause();musicPaused=true;updateSound()}})}
+['pointerdown','touchstart','keydown'].forEach(type=>document.addEventListener(type,unlockMusic,{once:true,passive:type!=='keydown'}));
+music.addEventListener('play',updateSound);music.addEventListener('pause',updateSound);music.addEventListener('error',()=>{if(sound){sound.textContent='♪';sound.classList.remove('active')}});
 
 const lines=['Dear you,','I don’t know exactly when it happened.','Somewhere between the ordinary conversations,','the little laughs, and the moments I wanted to last longer,','you became incredibly important to me.','I like you. More than I know how to explain.','I just wanted you to know the truth. ♡'];let n=0,typing=false,p=$('#typed-letter'),btn=$('#write-next');let audioCtx=null,enabled=false;
 function initSound(){if(audioCtx)return;audioCtx=new(window.AudioContext||window.webkitAudioContext)()}
 function tick(){if(!enabled||!audioCtx||audioCtx.state==='suspended')return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=1150+Math.random()*420;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.014,audioCtx.currentTime+.006);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.045);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.05)}
 function wait(ms){return new Promise(r=>setTimeout(r,ms))}
 async function write(){if(typing||n>=lines.length)return;typing=true;if(btn){btn.disabled=true;btn.textContent='writing…'}if(p){p.classList.add('writing');const existing=lines.slice(0,n).join('\n')+(n?'\n':'');const text=lines[n];p.textContent=existing;for(let i=0;i<text.length;i++){const ch=text[i];p.textContent=existing+text.slice(0,i+1);if(!/\s/.test(ch))tick();if(!reduce)await wait(/[.!?,;:…]/.test(ch)?210:ch===' '?32:38)}n++;typing=false;p.classList.remove('writing');if(btn){btn.disabled=n>=lines.length;btn.textContent=n>=lines.length?'The truth is out ♡':'Write the next line →'}}}
-btn?.addEventListener('click',write);setTimeout(write,850);
-$('#yes')?.addEventListener('click',e=>{unlockMusic();const a=$('#answer');if(a)a.textContent='Okay… then I guess this is my favorite answer ever. ♡';if(a)a.classList.add('answer-pop');e.currentTarget.disabled=true;document.querySelectorAll('.question-glow').forEach(x=>x.animate([{opacity:.5,transform:'scale(.8)'},{opacity:1,transform:'scale(1.25)'},{opacity:.5,transform:'scale(1)'}],{duration:1200,easing:'ease-in-out'}))});
+btn?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();unlockMusic();write()});setTimeout(write,850);
+$('#yes')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();unlockMusic();const a=$('#answer');if(a)a.textContent='Okay… then I guess this is my favorite answer ever. ♡';if(a)a.classList.add('answer-pop');e.currentTarget.disabled=true;document.querySelectorAll('.question-glow').forEach(x=>x.animate([{opacity:.5,transform:'scale(.8)'},{opacity:1,transform:'scale(1.25)'},{opacity:.5,transform:'scale(1)'}],{duration:1200,easing:'ease-in-out'}))});
 $('#time')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();unlockMusic();const a=$('#answer');if(a)a.textContent='Take all the time you need. I just wanted you to know. ♡'});
 $$('.photo-slot').forEach(x=>x.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();unlockMusic();x.classList.toggle('focused')}));
 const buddy=$('#senderBuddy');const buddyLines=['hey… you tapped me. ♡','okay, I’m blushing now…','I really mean this.','stay a little longer?','you make this part less scary.','I’m rooting for us. ♡'];let buddyTap=0;
